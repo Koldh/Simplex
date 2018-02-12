@@ -1,7 +1,7 @@
 import numpy as np 
 from scipy.optimize import OptimizeResult
 from pylab import *
-
+"CACA"
 
 class SIMPLEX:
         def __init__(self,c,A_ub,b_ub,learning_mode = 0,A_eq=None,b_eq=None):
