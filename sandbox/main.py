@@ -31,8 +31,11 @@ simplex.prepare_phase_2()
 
 T = simplex.T
 
-found,pivot=select_pivot(T,'Dantzig')
-T=play(T,pivot)
+found =1
+while(found):
+	found,pivot=select_pivot(T,'Dantzig')
+	if(found):
+		found,T=play(T,pivot)
 
 
 
