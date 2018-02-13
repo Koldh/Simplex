@@ -378,7 +378,7 @@ def pivot_features(T):
 def select_pivot(T,heuristic,tol=1.0E-12):
 	ma = T[-1, :-1] < -tol #true if negative
         if ma.sum() == 0:#safe check
-	        return False,-1
+	        return False,-1,0
         steepest_edge_feat,greatest_improv_feat = pivot_features(T)
         if heuristic == 'Dantzig':
 	        pivcol_action = argmin(T[-1,:-1])
@@ -388,7 +388,7 @@ def select_pivot(T,heuristic,tol=1.0E-12):
                 pivcol_action = steepest_edge_feat.argmin()
         elif heuristic == 'Greatest':
                 pivcol_action = greatest_improv_feat.argmin()
-	return True,pivcol_action
+	return True,pivcol_action,asarray([T[-1,:-1], steepest_edge_feat])
 
 
 
