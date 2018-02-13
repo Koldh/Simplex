@@ -4,7 +4,7 @@ from pylab import *
 "CACA"
 
 class SIMPLEX:
-        def __init__(self,c,A_ub,b_ub,learning_mode = 0,A_eq=None,b_eq=None):
+        def __init__(self,c,A_ub,b_ub,A_eq=None,b_eq=None):
                 self.c = c
                 self.A_ub = A_ub
 		self.A    = A_ub
@@ -19,7 +19,6 @@ class SIMPLEX:
 		self.non_basis = [] 
 		self.T_non_basis= []
 		self.T_non_basis_next = []
-		self.learning_mode  = learning_mode
         def get_init_tableaux(self):
 		# Initialize the tableau to feed to the agent, this step correspond to Simplex phase 1 
 		status = 0
@@ -241,7 +240,7 @@ class SIMPLEX:
     # each row with an artificial variable from the Phase 1 objective
     		for r in r_artificial:
         	  	self.T[-1, :] = self.T[-1, :] - self.T[r, :]
-		nit1, status = self.simplex_phase_1()
+		status = self.simplex_phase_1()
 		tol = 1.0E-12
     # if pseudo objective is zero, remove the last row from the tableau and
     # proceed to phase 2
@@ -262,7 +261,7 @@ class SIMPLEX:
                       message=message, success=False)
 		
 
-	def simplex_phase_1(self,maxiter=1000,callback='pivot',tol=1.0E-12,nit0=0,bland=False):
+	def simplex_phase_1(self,maxiter=1000,callback='pivot',tol=1.0E-12,nit0=0,heuristic='Dantzig'):
     		complete = False
 		nit      = nit0
     		n_total  = self.T.shape[1]-1
@@ -273,7 +272,7 @@ class SIMPLEX:
         		solution = np.zeros(max(self.T.shape[1] - 1, max(self.basis[:m]) + 1),
                             dtype=np.float64)
     		while not complete:
-        		pivcol_found, pivcol = self._pivot_col(tol=1.0E-12, bland=False)
+        		pivcol_found, pivcol = self._pivot_col(tol=1.0E-12, heuristic=heuristic)
         		if not pivcol_found:
             			pivcol = np.nan
             			pivrow = np.nan
@@ -331,7 +330,7 @@ class SIMPLEX:
                 ma = np.ma.masked_where(self.T[-1, :-1] >= -tol, self.T[-1, :-1], copy=False)
                 if ma.count() == 0:
                         return False, np.nan
-                reduced_cost_feat,steepest_edge_feat,greatest_improv_feat = _pivot_features()
+                steepest_edge_feat,greatest_improv_feat = pivot_features(self.T)
                 if heuristic == 'Dantzig':
                         pivcol_action = np.ma.where(ma == ma.min())[0][0]
                 elif heurisitc == 'Bland':
@@ -345,46 +344,45 @@ class SIMPLEX:
 
 
 ####################### AGENT SELECTION
-def play(self,T,pivcol_action,tol=1.0E-12):
+def play(T,pivcol_action,tol=1.0E-12):
                 #pivcol_action is an integer
 	pivrow_found, pivrow = pivot_row(T,pivcol_action,tol)
         if not pivrow_found:
                 return False,T
-        self.basis[pivrow] = pivcol_action
         pivval             = T[pivrow][pivcol_action]
-        self.T[pivrow, :]  = T[pivrow, :] / pivval
+        T[pivrow, :]  = T[pivrow, :] / pivval
         for irow in range(T.shape[0]):
         	if irow != pivrow:
-                T[irow, :] = T[irow, :] - T[pivrow, :]*T[irow, pivcol_action]
+                	T[irow, :] = T[irow, :] - T[pivrow, :]*T[irow, pivcol_action]
         return True,T
 
 
-def pivot_row(self,T, pivcol,tol=1.0E-12):
+def pivot_row(T, pivcol,tol=1.0E-12):
         k = 1
-        ma = np.ma.masked_where(self.T[:-k, int(pivcol)] <= tol, self.T[:-k, int(pivcol)], copy=False)
+        ma = np.ma.masked_where(T[:-k, int(pivcol)] <= tol, T[:-k, int(pivcol)], copy=False)
         if ma.count() == 0:
                 return False,0
-        mb = np.ma.masked_where(self.T[:-k, pivcol] <= tol, self.T[:-k, -1], copy=False)
+        mb = np.ma.masked_where(T[:-k, pivcol] <= tol, T[:-k, -1], copy=False)
         q = mb / ma
         return True, np.ma.where(q == q.min())[0][0]
 
 
 def pivot_features(T):
         steepest_edge_feat   = T[-1,:-1]/norm(T[:-1,:-1],axis=0)
-        theta                = T[:-1,-1].reshape((-1,1))/T[:-1,:-1]
+        theta                = T[:-1,-1].reshape((-1,1))/(T[:-1,:-1]+0.000001)
         theta_min            = theta.min(axis=0)
         greatest_improv_feat = T[-1,:-1]*theta_min
         return steepest_edge_feat,greatest_improv_feat
 
 
-def select_pivot(T,heuristic):
+def select_pivot(T,heuristic,tol=1.0E-12):
 	ma = T[-1, :-1] < -tol #true if negative
         if ma.sum() == 0:#safe check
 	        return False,-1
         steepest_edge_feat,greatest_improv_feat = pivot_features(T)
         if heuristic == 'Dantzig':
 	        pivcol_action = argmin(T[-1,:-1])
-        elif heurisitc == 'Bland':
+        elif heuristic == 'Bland':
         	pivcol_action = find(ma)[0]
         elif heuristic == 'Steepest':
                 pivcol_action = steepest_edge_feat.argmin()
