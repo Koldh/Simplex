@@ -20,6 +20,11 @@ def loadgame(gamefile):
 	b_eq = x[2]
 	A_ub = x[3]
 	b_ub = x[4]
+	print shape(c)
+	print shape(A_eq)
+	print shape(b_eq)
+	print shape(A_ub)
+	print shape(b_ub)
 	feasible,n_ite_simplex,obj_simplex,sol = TEST(c,A_ub,b_ub,A_eq,b_eq)
 	print n_ite_simplex
 	print obj_simplex
@@ -72,14 +77,14 @@ def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_ke
 				T.append(copy(t))
 				onestep(T,features,path,stacks,policies_name,policies_keys,current=0)
         	else:#if converged
-			#print path
+			print path
 			stacks.append([path,features])#register the path #TO OPTIMIZE< ONLY REGISTER IF IT IS THE SMALLEST !
 			if(len(T)>1):
 				onestep(T[:-1],features[:-1],path[:-1],stacks,policies_name,policies_keys,current=int(path[-1])+1)
 			#if other guys to test for this leaf, THIS IS USELESS TO DO AS IT CAN NOT BE SHORTER
 			
 
-path  = './tspdata*_upper_bound*5.pkl'
+path  = './DATA/tspdata*_upper_bound*10.pkl'
 files = sort(glob.glob(path))
 features = []
 for f in files:
