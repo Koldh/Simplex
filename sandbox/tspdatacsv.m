@@ -1,4 +1,4 @@
-function tspdatacsv(n,name,upper_bound)
+function tspdatacsv(n,name,upper_bound);
 var = n*n-n;
 tvar = n*n - 1;
 c = unidrnd(upper_bound,1,var);
@@ -41,28 +41,34 @@ bin = zeros(1,(n-1)*(n-2))+(n-1);
 
 rowsize = 1 + 2*n + 1 + (n-1)*(n-2) + 1;
 columnsize = max(tvar,2*n);
-data = cell(rowsize,columnsize);
+data = zeros(rowsize,columnsize);
 rowindex = 1;
 for i=1:tvar
-    data(rowindex,i) = {c(i)};
+    data(rowindex,i) = c(i);
 end
 for i=1:2*n
     for j = 1:tvar
-        data(rowindex+i,j) = {Aeq(i,j)};
+        data(rowindex+i,j) = Aeq(i,j);
     end
 end
 rowindex = rowindex + 2*n;
 for i=1:2*n
-    data(rowindex+1,i) = {beq(i)};
+    data(rowindex+1,i) = beq(i);
+end
+for i = 2*n+1:rowsize
+    data(rowindex+1,i) = nan; % you can change nan (not a number) to zero or something else if it makes harder to read
 end
 rowindex = rowindex + 1;
 for i=1:(n-1)*(n-2)
     for j = 1:tvar
-        data(rowindex+i,j) = {Ain(i,j)};
+        data(rowindex+i,j) = Ain(i,j);
     end
 end
 rowindex = rowindex + (n-1)*(n-2);
 for i=1:(n-1)*(n-2)
-    data(rowindex+1,i) = {bin(i)};
+    data(rowindex+1,i) = bin(i);
+end
+for i = (n-1)*(n-2)+1:rowsize
+    data(rowindex+1,i) = nan; % you can change nan (not a number) to zero or something else if it makes harder to read
 end
 csvwrite(name,data);

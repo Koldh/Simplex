@@ -17,11 +17,13 @@ def transformer(DATA,n):
         b_eq = delete(b_eq,index)
         index = argwhere(isnan(b_ub))
         b_ub = delete(b_ub,index)
+	print b_ub
+	print A_eq
         f = open(DATA[:-4]+'_cities_'+str(n)+'.pkl','wb')
         cPickle.dump([c,A_eq,b_eq,A_ub,b_ub],f)
         f.close()
 
-data_names = sort(glob.glob('tspdata*.csv'))
+data_names = sort(glob.glob('tspdata*.dat'))
 for i in data_names:
 	transformer(i,5)
 
