@@ -21,7 +21,7 @@ def transformer(DATA,n):
         cPickle.dump([c,A_eq,b_eq,A_ub,b_ub],f)
         f.close()
 
-data_names = sort(glob.glob('tspdata*'))
+data_names = sort(glob.glob('tspdata*.csv'))
 for i in data_names:
 	transformer(i,5)
 

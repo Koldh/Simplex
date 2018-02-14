@@ -4,14 +4,14 @@ from Simplex import *
 import cPickle
 import string
 import sys
-
+import glob
 ######################################### PARAMS ####################################################
 #games_file_train = [ 'TSPdata'+str(i)+'.txt' for i in range(1,21)]
 #game_file_test  = [ 'TSPdata'+str(i)+'.txt' for i in range(21,50)]
 
 
 def loadgame(gamefile):
-	f= open(games_file_train[i],'rb')
+	f= open(gamefile,'rb')
 	x = cPickle.load(f)
 	f.close()
 	c = x[0]
@@ -20,6 +20,8 @@ def loadgame(gamefile):
 	A_ub = x[3]
 	b_ub = x[4]
 	feasible,n_ite_simplex,obj_simplex,sol = TEST(c,A_ub,b_ub,A_eq,b_eq)
+	print feasible
+	print obj_simplex
 	return feasible,c,A_ub,b_ub,A_eq,b_eq
 
 
@@ -37,6 +39,7 @@ def search(gamefile):
 	ite   = 0
 	path  = ""
 	stacks = []#"0000000000000000000000000000000000000000000000000000000000000000000",[]]
+	print 'STEP'
 	onestep(Ts,[],path,stacks)
 	return clean_paths(stacks)
 
@@ -69,6 +72,11 @@ def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_ke
         			path+=policies_keys[current]
 			        features.append(feat)
 				T.append(copy(t))
+				print features
+				print path
+				print stacks
+				print policies_name
+				print policies_keys
 				onestep(T,features,path,stacks,policies_name,policies_keys,current=0)
         	else:#if converged
 			print path,len(stacks[0]),len(path)
@@ -77,10 +85,12 @@ def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_ke
 				onestep(T[:-1],features[:-1],path[:-1],stacks,policies_name,policies_keys,current=int(path[-1])+1)
 			#if other guys to test for this leaf, THIS IS USELESS TO DO AS IT CAN NOT BE SHORTER
 			
-path  = 'TSPdata*'
-files = glob.glob(path)
+path  = './tspdata*.pkl'
+files = sort(glob.glob(path))
 features = []
+print files
 for f in files:
+	print f
 	features.append(search(f))
 
 
