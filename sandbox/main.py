@@ -54,7 +54,6 @@ def clean_paths(stacks):
 
 
 def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_keys=["0","1"],current=0):
-	print path
 	if(len(policies_name)==current):#already tested all paths need to go upper
 		if(len(T)>1):#GO HIGHER
 			onestep(T[:-1],features[:-1],path[:-1],stacks,policies_name,policies_keys,int(path[-1])+1)
@@ -70,11 +69,13 @@ def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_ke
 				T.append(copy(t))
 				onestep(T,features,path,stacks,policies_name,policies_keys,current=0)
         	else:#if converged
+			print path
 			stacks.append([path,features])#register the path #TO OPTIMIZE< ONLY REGISTER IF IT IS THE SMALLEST !
 			if(len(T)>1):
 				onestep(T[:-1],features[:-1],path[:-1],stacks,policies_name,policies_keys,current=int(path[-1])+1)
 			#if other guys to test for this leaf, THIS IS USELESS TO DO AS IT CAN NOT BE SHORTER
 			
+
 path  = './tspdata*_upper_bound*.pkl'
 files = sort(glob.glob(path))
 features = []
