@@ -118,4 +118,10 @@ for f in files:
 	data.append(search(f))
 	print time.time()-t
 
+k = open('DATA_TSP.pkl','wb')
+cPickle.dump(data,k)
+k.close()
+
+
+
 
