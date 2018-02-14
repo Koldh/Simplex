@@ -41,12 +41,10 @@ def search(gamefile):
 	simplex.get_init_tableaux()
 	simplex.prepare_phase_2()
 	Ts    = [simplex.T]
-	path  = ""
-	stacks = []#"0000000000000000000000000000000000000000000000000000000000000000000",[]]
-	path,features=search2mars(Ts,n_ite_max)
+	p,f=search2mars(Ts,n_ite_max,[])
 #	onestep(Ts,[],path,stacks)
-	print path#,features
-	return path,features#clean_paths(stacks)
+	print p,f#,features
+	return p,f#clean_paths(stacks)
 
 
 def clean_paths(stacks):
@@ -80,6 +78,7 @@ def search2mars(T,max_depth,features=[],policies_name=['Dantzig','Bland','Steepe
 			path = baseN(cpt,len(policies_name))
 			if(len(path)<i):
 				path='0'*(i-len(path))+path
+#			print path,len(features),[len(features[k]) for k in xrange(len(features))],[rr(path[:k],len(policies_name)) for k in xrange(1,len(features)+1)]
 			return path,[features[k-1][rr(path[:k],len(policies_name))] for k in xrange(1,len(features)+1)]
 
 
