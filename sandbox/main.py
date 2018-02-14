@@ -74,20 +74,19 @@ def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_ke
 			else:
         			path+=policies_keys[current]
 			        features.append(feat)
-				T.append(copy(t))
+				T.append(t)
 				onestep(T,features,path,stacks,policies_name,policies_keys,current=0)
         	else:#if converged
-			print path
 			stacks.append([path,features])#register the path #TO OPTIMIZE< ONLY REGISTER IF IT IS THE SMALLEST !
-			if(len(T)>1):
-				onestep(T[:-1],features[:-1],path[:-1],stacks,policies_name,policies_keys,current=int(path[-1])+1)
+			if(len(T)>2):#WE GO 2STEP FURTHER !
+				onestep(T[:-2],features[:-2],path[:-2],stacks,policies_name,policies_keys,current=int(path[-2])+1)
 			#if other guys to test for this leaf, THIS IS USELESS TO DO AS IT CAN NOT BE SHORTER
 			
 
 path  = './DATA/tspdata*_upper_bound*10.pkl'
 files = sort(glob.glob(path))
 features = []
-for f in files:
+for f in files[:1]:
 	print f
 	t = time.time()
 	features.append(search(f))

@@ -2,6 +2,7 @@ import numpy as np
 from scipy.optimize import OptimizeResult
 from pylab import *
 "CACA"
+import copy
 
 class SIMPLEX:
         def __init__(self,c,A_ub,b_ub,A_eq=None,b_eq=None):
@@ -346,15 +347,16 @@ class SIMPLEX:
 ####################### AGENT SELECTION
 def play(T,pivcol_action,tol=1.0E-12):
                 #pivcol_action is an integer
-	pivrow_found, pivrow = pivot_row(T,pivcol_action,tol)
+	newT = copy.deepcopy(T)
+	pivrow_found, pivrow = pivot_row(newT,pivcol_action,tol)
         if not pivrow_found:
                 return False,T
-        pivval             = T[pivrow][pivcol_action]
-        T[pivrow, :]  = T[pivrow, :] / pivval
+        pivval             = newT[pivrow][pivcol_action]
+        newT[pivrow, :]  = newT[pivrow, :] / pivval
         for irow in range(T.shape[0]):
         	if irow != pivrow:
-                	T[irow, :] = T[irow, :] - T[pivrow, :]*T[irow, pivcol_action]
-        return True,T
+                	newT[irow, :] = newT[irow, :] - newT[pivrow, :]*newT[irow, pivcol_action]
+        return True,newT
 
 
 def pivot_row(T, pivcol,tol=1.0E-12):
