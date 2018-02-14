@@ -4,7 +4,7 @@ from pylab import *
 
 
 ### SELECT PIVOT COL: TO BE CHANGED BY RF
-def _pivot_col(T,m,DL_agent=0,tol=1.0E-12, bland=False,phase=1):
+def _pivot_col(T,m,DL_agent=0,tol=1.0E-12, rules='Dantzig',phase=1):
     """
     Given a linear programming simplex tableau, determine the column
     of the variable to enter the basis.
@@ -33,11 +33,24 @@ def _pivot_col(T,m,DL_agent=0,tol=1.0E-12, bland=False,phase=1):
         If status is False, col will be returned as nan.
     """
     ma = np.ma.masked_where(T[-1, :-1] >= -tol, T[-1, :-1], copy=False)
-    if ma.count() == 0:
-       return False, np.nan
-    if bland:
-       return True, np.where(ma.mask == False)[0][0]
-    return True, np.ma.where(ma == ma.min())[0][0]
+    ma = T[-1, :-1] < -tol #true if negative
+    if ma.sum() == 0:#safe check
+       return False,np.nan
+    else :
+	if rules == 'Bland':
+	   return True, find(ma)[0]
+	elif rules == 'Dantzig':
+	   return True, argmin(T[-1,:-1])
+	elif rules == 'Steepest':
+           steepest_edge_feat   = T[-1,:-1]/norm(T[:-1,:-1],axis=0)
+	   return True, steepest_edge_feat.argmin()
+	elif rules == 'Greatest':
+           mask                 = T[:-1,:-1]<0
+           renorm               = T[:-1,:-1]-T[:-1,:-1]*mask
+	   theta                = T[:-1,-1].reshape((-1,1))/renorm
+	   theta_min            = argmin(theta,axis=0)
+	   greatest_improv_feat = T[-1,:-1]*theta_min
+	   return True, greatest_improv_feat.argmin()
 
 
 def _pivot_row(T, pivcol, phase, tol=1.0E-12):
@@ -81,7 +94,7 @@ def _pivot_row(T, pivcol, phase, tol=1.0E-12):
 
 
 def _solve_simplex(T, n, basis, maxiter=1000, phase=2, callback='pivot',
-                   tol=1.0E-12, nit0=0, bland=False):
+                   tol=1.0E-12, nit0=0, rules='Dantzig'):
     """
     Solve a linear programming problem in "standard maximization form" using
     the Simplex Method.
@@ -217,7 +230,7 @@ def _solve_simplex(T, n, basis, maxiter=1000, phase=2, callback='pivot',
 
     while not complete:
         # Find the pivot column
-        pivcol_found, pivcol = _pivot_col(T,m,0,tol,False,phase)
+        pivcol_found, pivcol = _pivot_col(T,m,0,tol,rules,phase)
 	if pivcol_found and phase ==2:
 	   nit +=1
         if not pivcol_found:
@@ -266,7 +279,7 @@ def _solve_simplex(T, n, basis, maxiter=1000, phase=2, callback='pivot',
 
 def _linprog_simplex(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None,
             bounds=None, maxiter=1000, disp=False, callback=None,
-            tol=1.0E-12, bland=False, **unknown_options):
+            tol=1.0E-12, rules='Dantzig', **unknown_options):
     """
     Solve the following linear programming problem via a two-phase
     simplex algorithm.
@@ -634,7 +647,7 @@ def _linprog_simplex(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None,
     for r in r_artificial:
         T[-1, :] = T[-1, :] - T[r, :]
     nit1, status,_,_ = _solve_simplex(T, n, basis, phase=1, callback=callback,
-                                  maxiter=maxiter, tol=tol, bland=bland)
+                                  maxiter=maxiter, tol=tol, rules='Dantzig')
 
     # if pseudo objective is zero, remove the last row from the tableau and
     # proceed to phase 2
@@ -657,7 +670,7 @@ def _linprog_simplex(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None,
     # Phase 2
     nit2, status,T,sol = _solve_simplex(T, n, basis, maxiter=maxiter-nit1, phase=2,
                                   callback=callback, tol=tol, nit0=nit1,
-       	                          bland=bland)
+       	                          rules=rules)
     solution = np.zeros(n+n_slack+n_artificial)
     solution[basis[:m]] = T[:m, -1]
     x = solution[:n]
@@ -694,9 +707,9 @@ def _linprog_simplex(c, A_ub=None, b_ub=None, A_eq=None, b_eq=None,
 
 
 ## GENERATE RANDOM LP
-def TEST(c,A_ub,b_ub,A_eq= None,b_eq = None):
+def TEST(c,A_ub,b_ub,A_eq= None,b_eq = None, rules ='Dantzig'):
 	feasible = 0
-	res,nit2,obj,sol = _linprog_simplex(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, maxiter=1000,tol=1.0E-12, bland=False)
+	res,nit2,obj,sol = _linprog_simplex(c, A_ub=A_ub, b_ub=b_ub, A_eq=A_eq, b_eq=b_eq, maxiter=1000,tol=1.0E-12, rules=rules)
 	if res.message == 'Optimization terminated successfully.':
 		feasible = 1
 	return feasible,nit2,obj,sol

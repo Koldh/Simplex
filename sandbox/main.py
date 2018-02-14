@@ -11,7 +11,7 @@ import time
 #game_file_test  = [ 'TSPdata'+str(i)+'.txt' for i in range(21,50)]
 sys.setrecursionlimit(15000)
 
-def loadgame(gamefile):
+def loadgame(gamefile,testing_rules='Dantzig'):
 	f= open(gamefile,'rb')
 	x = cPickle.load(f)
 	f.close()
@@ -20,21 +20,16 @@ def loadgame(gamefile):
 	b_eq = x[2]
 	A_ub = x[3]
 	b_ub = x[4]
-	print shape(c)
-	print shape(A_eq)
-	print shape(b_eq)
-	print shape(A_ub)
-	print shape(b_ub)
-	feasible,n_ite_simplex,obj_simplex,sol = TEST(c,A_ub,b_ub,A_eq,b_eq)
-	print n_ite_simplex
+	feasible,n_ite_simplex,obj_simplex,sol = TEST(c=c,A_ub=A_ub,b_ub=b_ub,A_eq=A_eq,b_eq=b_eq,rules=testing_rules)
+	print 'n_iteration simplex :',n_ite_simplex, 'rules: ', testing_rules
 	print obj_simplex
 	return feasible,c,A_ub,b_ub,A_eq,b_eq,n_ite_simplex
 
 
 #HEURISTIC: 'Dantzig' 'Bland' 'Steepest' 'Greatest' 
 
-def search(gamefile):
-	feasible,c,A_ub,b_ub,A_eq,b_eq,n_ite_max=loadgame(gamefile)
+def search(gamefile,testing_rules):
+	feasible,c,A_ub,b_ub,A_eq,b_eq,n_ite_max=loadgame(gamefile,testing_rules)
 	if(feasible==False):
 		return 0
 	simplex = SIMPLEX(c,A_ub,b_ub,A_eq,b_eq)
@@ -109,13 +104,13 @@ def twostep(Ts,features,policies_name):
 #path  = './DATA/tspdata*_upper_bound*10.pkl'
 n_cities = int(sys.argv[-1])
 path  = './DATA/tspdata*_upper_bound*'+'cities_'+str(n_cities)+'.pkl'
-
+testing_rules = 'Steepest'
 files = sort(glob.glob(path))
 data = []
 for f in files:
 	print f
 	t = time.time()
-	data.append(search(f))
+	data.append(search(f,testing_rules))
 	print time.time()-t
 
 k = open('DATA_TSP.pkl','wb')
