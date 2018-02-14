@@ -43,9 +43,10 @@ def search(gamefile):
 	Ts    = [simplex.T]
 	path  = ""
 	stacks = []#"0000000000000000000000000000000000000000000000000000000000000000000",[]]
-	k=search2mars(Ts,n_ite_max)
+	path,features=search2mars(Ts,n_ite_max)
 #	onestep(Ts,[],path,stacks)
-	return k#clean_paths(stacks)
+	print path#,features
+	return path,features#clean_paths(stacks)
 
 
 def clean_paths(stacks):
@@ -62,30 +63,46 @@ def clean_paths(stacks):
 
 
 
+def baseN(num,b,numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
+    return ((num == 0) and numerals[0]) or (baseN(num // b, b, numerals).lstrip(numerals[0]) + numerals[num % b])
 
+def path2arr(path):
+	return array([int(p) for p in path])
 
-def search2mars(T,max_depth,policies_name=['Dantzig','Bland','Steepest']):
+def rr(path,b):
+	return sum(path2arr(path)*b**(arange(len(path))[::-1]))
+
+def search2mars(T,max_depth,features=[],policies_name=['Dantzig','Bland','Steepest']):
 	for i in xrange(max_depth):
 		print 'depth: ',i
-		cpt,T=twostep(T,policies_name)
+		cpt,T,features=twostep(T,features,policies_name)
 		if(T==0):
-			return cpt
+			path = baseN(cpt,len(policies_name))
+			if(len(path)<i):
+				path='0'*(i-len(path))+path
+			return path,[features[k-1][rr(path[:k],len(policies_name))] for k in xrange(1,len(features)+1)]
 
 
-def twostep(Ts,policies_name):
-	newTs =[None]*len(policies_name)*len(Ts)
-	cpt=0
+def twostep(Ts,features,policies_name):
+	newTs = [None]*len(policies_name)*len(Ts)
+	feats = [None]*len(policies_name)*len(Ts)
+	cpt   = 0
 	for t in Ts:
 		for i in policies_name:
-			cont,pivot,features = select_pivot(t,i)
+			cont,pivot,localfeats = select_pivot(t,i)
 			if cont== True:
 				cont,t=play(t,pivot)
 				if(cont):
 					newTs[cpt]=t
-					cpt +=1
+					feats[cpt]=localfeats
+					cpt      +=1
 			else:
-				return cpt,0
-	return 0,newTs
+#				features.append(feats)
+				path = baseN(cpt,len(policies_name))[:-1]
+				cpt  = rr(path,len(policies_name))
+				return cpt,0,features
+	features.append(feats)
+	return 0,newTs,features
 
 
 
@@ -95,11 +112,11 @@ n_cities = int(sys.argv[-1])
 path  = './DATA/tspdata*_upper_bound*'+'cities_'+str(n_cities)+'.pkl'
 
 files = sort(glob.glob(path))
-features = []
+data = []
 for f in files[2:4]:
 	print f
 	t = time.time()
-	features.append(search(f))
+	data.append(search(f))
 	print time.time()-t
 
 
