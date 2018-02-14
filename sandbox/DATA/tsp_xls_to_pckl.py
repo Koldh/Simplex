@@ -21,9 +21,9 @@ def transformer(DATA,n):
         cPickle.dump([c,A_eq,b_eq,A_ub,b_ub],f)
         f.close()
 
-n_cities = 10
-data_names = sort(glob.glob('./tspdata*_upper_bound4_cities_'+str(n_cities)+'.dat'))
 
+n_cities = int(sys.argv[-1])
+data_names = sort(glob.glob('./tspdata*_upper_bound4_cities_'+str(n_cities)+'.dat'))
 for i in data_names:
 	transformer(i,n_cities)
 

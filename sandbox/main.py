@@ -28,13 +28,13 @@ def loadgame(gamefile):
 	feasible,n_ite_simplex,obj_simplex,sol = TEST(c,A_ub,b_ub,A_eq,b_eq)
 	print n_ite_simplex
 	print obj_simplex
-	return feasible,c,A_ub,b_ub,A_eq,b_eq
+	return feasible,c,A_ub,b_ub,A_eq,b_eq,n_ite_simplex
 
 
 #HEURISTIC: 'Dantzig' 'Bland' 'Steepest' 
 
 def search(gamefile):
-	feasible,c,A_ub,b_ub,A_eq,b_eq=loadgame(gamefile)
+	feasible,c,A_ub,b_ub,A_eq,b_eq,n_ite_max=loadgame(gamefile)
 	if(feasible==False):
 		return 0
 	simplex = SIMPLEX(c,A_ub,b_ub,A_eq,b_eq)
@@ -43,8 +43,9 @@ def search(gamefile):
 	Ts    = [simplex.T]
 	path  = ""
 	stacks = []#"0000000000000000000000000000000000000000000000000000000000000000000",[]]
-	onestep(Ts,[],path,stacks)
-	return clean_paths(stacks)
+	k=search2mars(Ts,n_ite_max)
+#	onestep(Ts,[],path,stacks)
+	return k#clean_paths(stacks)
 
 
 def clean_paths(stacks):
@@ -77,13 +78,41 @@ def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_ke
 				T.append(t)
 				onestep(T,features,path,stacks,policies_name,policies_keys,current=0)
         	else:#if converged
+			print path
 			stacks.append([path,features])#register the path #TO OPTIMIZE< ONLY REGISTER IF IT IS THE SMALLEST !
 			if(len(T)>2):#WE GO 2STEP FURTHER !
 				onestep(T[:-2],features[:-2],path[:-2],stacks,policies_name,policies_keys,current=int(path[-2])+1)
 			#if other guys to test for this leaf, THIS IS USELESS TO DO AS IT CAN NOT BE SHORTER
 			
 
-path  = './DATA/tspdata*_upper_bound*10.pkl'
+
+
+def search2mars(T,max_depth,policies_name=['Dantzig','Bland']):
+	for i in xrange(max_depth):
+		cpt,T=twostep(T,policies_name)
+		if(T==0):
+			return cpt
+
+
+def twostep(Ts,policies_name):
+	newTs =[None]*len(policies_name)*len(Ts)
+	cpt=0
+	for t in Ts:
+		for i in policies_name:
+			cont,t=play(t,i)
+			if(cont):
+				newTs[cpt]=t
+				return cpt,0
+			cpt+=1
+	return 0,newTs
+
+
+
+
+#path  = './DATA/tspdata*_upper_bound*10.pkl'
+n_cities = int(sys.argv[-1])
+path  = './DATA/tspdata*_upper_bound*'+'cities_'+str(n_cities)+'.pkl'
+
 files = sort(glob.glob(path))
 features = []
 for f in files[:1]:
