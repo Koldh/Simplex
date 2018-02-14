@@ -370,9 +370,13 @@ def pivot_row(T, pivcol,tol=1.0E-12):
 
 
 def pivot_features(T):
+	#STEAPEST
         steepest_edge_feat   = T[-1,:-1]/norm(T[:-1,:-1],axis=0)
-        theta                = T[:-1,-1].reshape((-1,1))/(T[:-1,:-1]+0.000001)
-        theta_min            = theta.min(axis=0)
+	#GREATEST
+        mask                 = T[:-1,:-1]<0
+        renorm               = T[:-1,:-1]-T[:-1,:-1]*mask
+        theta                = T[:-1,-1].reshape((-1,1))/renorm
+        theta_min            = argmin(theta,axis=0)
         greatest_improv_feat = T[-1,:-1]*theta_min
         return steepest_edge_feat,greatest_improv_feat
 
@@ -390,7 +394,7 @@ def select_pivot(T,heuristic,tol=1.0E-12):
                 pivcol_action = steepest_edge_feat.argmin()
         elif heuristic == 'Greatest':
                 pivcol_action = greatest_improv_feat.argmin()
-	return True,pivcol_action,asarray([T[-1,:-1], steepest_edge_feat])
+	return True,pivcol_action,asarray([T[-1,:-1], steepest_edge_feat,greatest_improv_feat])
 
 
 

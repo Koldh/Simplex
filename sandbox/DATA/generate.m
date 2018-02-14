@@ -1,4 +1,4 @@
-n =7; 
+n =8; 
 m =5;
 upper_bound = 4;
 for i= 1:m

@@ -31,7 +31,7 @@ def loadgame(gamefile):
 	return feasible,c,A_ub,b_ub,A_eq,b_eq,n_ite_simplex
 
 
-#HEURISTIC: 'Dantzig' 'Bland' 'Steepest' 
+#HEURISTIC: 'Dantzig' 'Bland' 'Steepest' 'Greatest' 
 
 def search(gamefile):
 	feasible,c,A_ub,b_ub,A_eq,b_eq,n_ite_max=loadgame(gamefile)
@@ -42,8 +42,8 @@ def search(gamefile):
 	simplex.prepare_phase_2()
 	Ts    = [simplex.T]
 	p,f=search2mars(Ts,n_ite_max,[])
-#	onestep(Ts,[],path,stacks)
-	print p,f#,features
+	f = asarray(f)
+	print f.shape, p
 	return p,f#clean_paths(stacks)
 
 
@@ -70,7 +70,7 @@ def path2arr(path):
 def rr(path,b):
 	return sum(path2arr(path)*b**(arange(len(path))[::-1]))
 
-def search2mars(T,max_depth,features=[],policies_name=['Dantzig','Bland','Steepest']):
+def search2mars(T,max_depth,features=[],policies_name=['Dantzig','Bland','Steepest','Greatest']):
 	for i in xrange(max_depth):
 		print 'depth: ',i
 		cpt,T,features=twostep(T,features,policies_name)
@@ -112,7 +112,7 @@ path  = './DATA/tspdata*_upper_bound*'+'cities_'+str(n_cities)+'.pkl'
 
 files = sort(glob.glob(path))
 data = []
-for f in files[2:4]:
+for f in files:
 	print f
 	t = time.time()
 	data.append(search(f))
