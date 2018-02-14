@@ -5,6 +5,7 @@ import cPickle
 import string
 import sys
 import glob
+import time
 ######################################### PARAMS ####################################################
 #games_file_train = [ 'TSPdata'+str(i)+'.txt' for i in range(1,21)]
 #game_file_test  = [ 'TSPdata'+str(i)+'.txt' for i in range(21,50)]
@@ -20,6 +21,8 @@ def loadgame(gamefile):
 	A_ub = x[3]
 	b_ub = x[4]
 	feasible,n_ite_simplex,obj_simplex,sol = TEST(c,A_ub,b_ub,A_eq,b_eq)
+	print n_ite_simplex
+	print obj_simplex
 	return feasible,c,A_ub,b_ub,A_eq,b_eq
 
 
@@ -69,19 +72,20 @@ def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_ke
 				T.append(copy(t))
 				onestep(T,features,path,stacks,policies_name,policies_keys,current=0)
         	else:#if converged
-			print path
+			#print path
 			stacks.append([path,features])#register the path #TO OPTIMIZE< ONLY REGISTER IF IT IS THE SMALLEST !
 			if(len(T)>1):
 				onestep(T[:-1],features[:-1],path[:-1],stacks,policies_name,policies_keys,current=int(path[-1])+1)
 			#if other guys to test for this leaf, THIS IS USELESS TO DO AS IT CAN NOT BE SHORTER
 			
 
-path  = './tspdata*_upper_bound*.pkl'
+path  = './tspdata*_upper_bound*5.pkl'
 files = sort(glob.glob(path))
 features = []
-for f in files[:1]:
+for f in files:
 	print f
+	t = time.time()
 	features.append(search(f))
-
+	print time.time()-t
 
 
