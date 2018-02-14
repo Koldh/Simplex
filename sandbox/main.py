@@ -8,7 +8,7 @@ import glob
 ######################################### PARAMS ####################################################
 #games_file_train = [ 'TSPdata'+str(i)+'.txt' for i in range(1,21)]
 #game_file_test  = [ 'TSPdata'+str(i)+'.txt' for i in range(21,50)]
-
+sys.setrecursionlimit(15000)
 
 def loadgame(gamefile):
 	f= open(gamefile,'rb')
@@ -20,8 +20,6 @@ def loadgame(gamefile):
 	A_ub = x[3]
 	b_ub = x[4]
 	feasible,n_ite_simplex,obj_simplex,sol = TEST(c,A_ub,b_ub,A_eq,b_eq)
-	print n_ite_simplex
-	print obj_simplex
 	return feasible,c,A_ub,b_ub,A_eq,b_eq
 
 
@@ -35,8 +33,6 @@ def search(gamefile):
 	simplex.get_init_tableaux()
 	simplex.prepare_phase_2()
 	Ts    = [simplex.T]
-	found = 1
-	ite   = 0
 	path  = ""
 	stacks = []#"0000000000000000000000000000000000000000000000000000000000000000000",[]]
 	onestep(Ts,[],path,stacks)
@@ -58,7 +54,7 @@ def clean_paths(stacks):
 
 
 def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_keys=["0","1"],current=0):
-	print 'ONESTEP'
+	print path
 	if(len(policies_name)==current):#already tested all paths need to go upper
 		if(len(T)>1):#GO HIGHER
 			onestep(T[:-1],features[:-1],path[:-1],stacks,policies_name,policies_keys,int(path[-1])+1)
@@ -74,7 +70,6 @@ def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_ke
 				T.append(copy(t))
 				onestep(T,features,path,stacks,policies_name,policies_keys,current=0)
         	else:#if converged
-			print path,len(stacks[0]),len(path)
 			stacks.append([path,features])#register the path #TO OPTIMIZE< ONLY REGISTER IF IT IS THE SMALLEST !
 			if(len(T)>1):
 				onestep(T[:-1],features[:-1],path[:-1],stacks,policies_name,policies_keys,current=int(path[-1])+1)
@@ -83,7 +78,7 @@ def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_ke
 path  = './tspdata*_upper_bound*.pkl'
 files = sort(glob.glob(path))
 features = []
-for f in files[4:]:
+for f in files[:1]:
 	print f
 	features.append(search(f))
 
