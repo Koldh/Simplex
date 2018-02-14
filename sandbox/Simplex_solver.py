@@ -217,7 +217,7 @@ def _solve_simplex(T, n, basis, maxiter=1000, phase=2, callback='pivot',
 
     while not complete:
         # Find the pivot column
-        pivcol_found, pivcol = _pivot_col(T,m,0,tol, bland,phase)
+        pivcol_found, pivcol = _pivot_col(T,m,0,tol,False,phase)
 	if pivcol_found and phase ==2:
 	   nit +=1
         if not pivcol_found:

@@ -62,33 +62,11 @@ def clean_paths(stacks):
 
 
 
-def onestep(T,features,path,stacks,policies_name=['Dantzig','Bland'],policies_keys=["0","1"],current=0):
-	if(len(policies_name)==current):#already tested all paths need to go upper
-		if(len(T)>1):#GO HIGHER
-			onestep(T[:-1],features[:-1],path[:-1],stacks,policies_name,policies_keys,int(path[-1])+1)
-	else:
-        	cont,pivot,feat=select_pivot(T[-1],policies_name[current])
-        	if(cont==True):#not converged
-			cont,t=play(T[-1],pivot)
-			if(cont==0):#FAUT TOUT GIVE UP
-				onestep(T,features,path,stacks,policies_name,policies_keys,current=current+1)
-			else:
-        			path+=policies_keys[current]
-			        features.append(feat)
-				T.append(t)
-				onestep(T,features,path,stacks,policies_name,policies_keys,current=0)
-        	else:#if converged
-			print path
-			stacks.append([path,features])#register the path #TO OPTIMIZE< ONLY REGISTER IF IT IS THE SMALLEST !
-			if(len(T)>2):#WE GO 2STEP FURTHER !
-				onestep(T[:-2],features[:-2],path[:-2],stacks,policies_name,policies_keys,current=int(path[-2])+1)
-			#if other guys to test for this leaf, THIS IS USELESS TO DO AS IT CAN NOT BE SHORTER
-			
 
 
-
-def search2mars(T,max_depth,policies_name=['Dantzig','Bland']):
+def search2mars(T,max_depth,policies_name=['Dantzig','Bland','Steepest']):
 	for i in xrange(max_depth):
+		print 'depth: ',i
 		cpt,T=twostep(T,policies_name)
 		if(T==0):
 			return cpt
@@ -99,11 +77,14 @@ def twostep(Ts,policies_name):
 	cpt=0
 	for t in Ts:
 		for i in policies_name:
-			cont,t=play(t,i)
-			if(cont):
-				newTs[cpt]=t
+			cont,pivot,features = select_pivot(t,i)
+			if cont== True:
+				cont,t=play(t,pivot)
+				if(cont):
+					newTs[cpt]=t
+					cpt +=1
+			else:
 				return cpt,0
-			cpt+=1
 	return 0,newTs
 
 
@@ -115,7 +96,7 @@ path  = './DATA/tspdata*_upper_bound*'+'cities_'+str(n_cities)+'.pkl'
 
 files = sort(glob.glob(path))
 features = []
-for f in files[:1]:
+for f in files[2:4]:
 	print f
 	t = time.time()
 	features.append(search(f))
