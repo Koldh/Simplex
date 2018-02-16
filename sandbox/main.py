@@ -105,7 +105,9 @@ def twostep(Ts,features,policies_name):
 n_cities = int(sys.argv[-1])
 path  = './DATA/tspdata*_upper_bound*'+'cities_'+str(n_cities)+'.pkl'
 testing_rules = 'Steepest'
-files = sort(glob.glob(path))
+tranche =  int(sys.argv[-2])
+files = sort(glob.glob(path))[tranche*200:(tranche+1)*200]
+print files
 data = []
 for f in files:
 	print f
@@ -113,7 +115,7 @@ for f in files:
 	data.append(search(f,testing_rules))
 	print time.time()-t
 
-k = open('DATA_TSP.pkl','wb')
+k = open('DATA_TSP'+str(tranche)+'.pkl','wb')
 cPickle.dump(data,k)
 k.close()
 
