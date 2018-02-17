@@ -5,12 +5,20 @@ import sys
 import glob
 
 def CNN(input_variable,batch_size):
-	l1     = tf.layers.conv1d(input_variable,10,1,data_format='channels_first',activation=tf.sigmoid)
-	l2     = tf.layers.conv1d(l1,10,1,data_format='channels_first',activation=tf.sigmoid)
+	l1     = tf.layers.conv1d(input_variable,2**5,1,data_format='channels_first',activation=tf.nn.relu)
+	l2     = tf.layers.conv1d(l1,2**4,1,data_format='channels_first',activation=tf.nn.relu)
 	l3     = tf.reshape(l2,(batch_size,-1))
-	l4     = tf.layers.dense(l3,64,activation=tf.tanh)
+        l4     = tf.layers.dense(l3,2**6,activation=tf.nn.relu)
+        l5     = tf.layers.dense(l4,2**5,activation=tf.nn.relu)
 	return  tf.layers.dense(l4,4,activation=None)
 
+def MLP(input_variable,batch_size):
+	l1     = tf.reshape(input_variable,(batch_size,-1))
+	l2     = tf.layers.dense(l1,2**7,activation=tf.nn.relu)
+	l3     = tf.layers.dense(l2,2**6,activation=tf.nn.relu)
+	l4     = tf.layers.dense(l3,2**5,activation=tf.nn.relu)
+        l5     = tf.layers.dense(l4,2**4,activation=tf.nn.relu)
+	return tf.layers.dense(l5,4,activation=None)
 
 
 def arangedata(data):
@@ -52,17 +60,23 @@ Y_test  =  concatenate(Y_test)
 
 figure()
 subplot(131)
-imshow(X_train[:,0,:],aspect='auto')
-colorbar()
-subplot(132)
-imshow(X_train[:,1,:],aspect='auto')
-colorbar()
-subplot(133)
-imshow(X_train[:,2,:],aspect='auto')
-colorbar()
+imshow((X_train[Y_train==0,0,:]),aspect='auto')
+xlabel('Variables',fontsize=15)
+ylabel(r'LP $n^{\circ}$',fontsize=15)
+title('Dantzig Feature',fontsize=20)
 
-figure()
-plot(Y_train)
+subplot(132)
+imshow((X_train[Y_train==1,1,:]),aspect='auto')
+xlabel('Variables',fontsize=15)
+ylabel(r'LP $n^{\circ}$',fontsize=15)
+title('Steepest Edge Feature',fontsize=20)
+
+subplot(133)
+imshow((X_train[Y_train==2,2,:]),aspect='auto')
+xlabel('Variables',fontsize=15)
+ylabel(r'LP $n^{\circ}$',fontsize=15)
+title('Greatest Improvement Feature',fontsize=20)
+
 
 input_shape = (50,3,X_train.shape[2])
 config = tf.ConfigProto()
@@ -74,7 +88,7 @@ with tf.device('/device:GPU:'+str(0)):
         y_            = tf.placeholder(tf.int32, shape=[input_shape[0]],name='y')
         prediction    = CNN(x,input_shape[0])
 	loss          = tf.losses.sparse_softmax_cross_entropy(labels=y_,logits=prediction)
-	optimizer     = tf.train.AdamOptimizer(learning_rate=0.000005)
+	optimizer     = tf.train.AdamOptimizer(learning_rate=0.005)#.0015 MLP
     	train_op      = optimizer.minimize(loss=loss)
 	accu          = tf.reduce_mean(tf.cast(tf.equal(y_,tf.cast(tf.argmax(prediction,axis=1),tf.int32)),tf.float32))
 
@@ -83,8 +97,7 @@ stack_accu = []
 
 session.run(tf.global_variables_initializer())
 
-for i in xrange(3000):
-	print i
+for i in xrange(80000):
 	p = permutation(len(X_train))[:input_shape[0]]
 	x_batch = X_train[p]
 	y_batch = Y_train[p]
@@ -93,7 +106,8 @@ for i in xrange(3000):
 	ac = session.run(accu,feed_dict={x:x_batch.astype('float32'),y_:y_batch.astype('int32')})
 	stack_loss.append(lo)
 	stack_accu.append(ac)
-	print stack_loss[-1]
+	if i%100 == 0:
+		print 'iteration n_: ', i, '   Loss=  ', stack_loss[-1]
 
 figure()	
 plot(stack_loss)
