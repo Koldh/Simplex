@@ -42,6 +42,48 @@ def search(gamefile,testing_rules):
 	return p,f#clean_paths(stacks)
 
 
+
+
+
+def DNNplay(gamefile,rules,session,prediction,input_variable):
+        feasible,c,A_ub,b_ub,A_eq,b_eq,n_ite_max=loadgame(gamefile,testing_rules)
+        if(feasible==False):
+                return 0
+        simplex = SIMPLEX(c,A_ub,b_ub,A_eq,b_eq)
+        simplex.get_init_tableaux()
+        simplex.prepare_phase_2()
+	cpt     = [0]*(len(rules)+1)
+	for i,r in zip(range(len(rules)),rules):
+		cpt0  = 0
+	        Ts    = [simplex.T]
+		while(1):
+			opt,pivot,_ = select_pivot(Ts[-1],r)
+			if(opt==0):
+				break
+			_,t = play(Ts[-1],pivot)
+			Ts.append(t)
+			cpt0 += 1
+		cpt[i]=cpt0
+	cpt0  = 0
+        Ts    = [simplex.T]
+        while(1):
+		features = asarray(pivot_features(Ts[-1])).astype('float32')
+	        pred  = session.run(prediction,feed_dict={input_variable:features[newaxis,:,:]})
+		opt,pivot,localfeats = select_pivot(Ts[-1],rules[pred[0].argmax()])
+		if(opt==0):
+			break
+                _,t = play(Ts[-1],pivot)
+                Ts.append(t)
+                cpt0 += 1
+	cpt[-1]=cpt0
+	return cpt
+
+
+
+
+
+
+
 def clean_paths(stacks):
 	#find minimum length
 	min_length=200

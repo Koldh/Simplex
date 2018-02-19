@@ -78,7 +78,7 @@ ylabel(r'LP $n^{\circ}$',fontsize=15)
 title('Greatest Improvement Feature',fontsize=20)
 
 
-input_shape = (50,3,X_train.shape[2])
+input_shape = (None,3,X_train.shape[2])
 config = tf.ConfigProto()
 config.log_device_placement=True
 session  = tf.Session(config=config)
@@ -92,12 +92,13 @@ with tf.device('/device:GPU:'+str(0)):
     	train_op      = optimizer.minimize(loss=loss)
 	accu          = tf.reduce_mean(tf.cast(tf.equal(y_,tf.cast(tf.argmax(prediction,axis=1),tf.int32)),tf.float32))
 
+
 stack_loss = []
 stack_accu = []
 
 session.run(tf.global_variables_initializer())
 
-for i in xrange(80000):
+for i in xrange(80):
 	p = permutation(len(X_train))[:input_shape[0]]
 	x_batch = X_train[p]
 	y_batch = Y_train[p]
@@ -108,6 +109,12 @@ for i in xrange(80000):
 	stack_accu.append(ac)
 	if i%100 == 0:
 		print 'iteration n_: ', i, '   Loss=  ', stack_loss[-1]
+
+
+
+cpt=DNNplay(PATH,['Dantzig','Bland','Steepest','Greatest'],session,prediction,x)
+
+
 
 figure()	
 plot(stack_loss)

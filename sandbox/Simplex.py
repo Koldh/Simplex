@@ -381,6 +381,7 @@ def pivot_features(T):
         return steepest_edge_feat,greatest_improv_feat
 
 
+
 def select_pivot(T,heuristic,tol=1.0E-12):
 	ma = T[-1, :-1] < -tol #true if negative
         if ma.sum() == 0:#safe check
